@@ -9,6 +9,7 @@ import pandas as pd
 from tabulate import tabulate
 from py_imessage import imessage
 import time
+from datetime import datetime
 
 # ----------
 # init vars
@@ -19,8 +20,6 @@ py_or_script    = 'script' #can use python or osascript — but python doesn’t
 script_file     = '%s/sendMessage.applescript' %wd
 
 cpu_threshold   = 10 #percent
-
-notification    = str('\n\n ~~ !!!! PROCESS COMPLETE !!! ~~ \n\n')
 
 interval_timing = 60 #seconds
 
@@ -85,55 +84,70 @@ process_name    = process[3:] #get process name
 # ----------------------
 # begin monitoring
 
+print('\n\n~~ Monitoring in Progress ~~\n\n')
+start_date = datetime.today().strftime('%m-%d-%Y')
+start_time = datetime.today().strftime('%-H:%M')
+print( 'Start Date: %s  -- Start Time: %s' %(start_date, start_time) )
 
 monitoring_loop = True
 while monitoring_loop:
-    os.system( str( 'top -l 3 -o cpu -n 10 -s %s >> %s' %(interval_timing, process_monitor_fname) ) ) #save the activity
+    os.system( str( 'top -l 5 -o cpu -n 10 -s %s >> %s' %(interval_timing, process_monitor_fname) ) ) #save the activity
     process_monitor_file = open(process_monitor_fname, 'r')
     process_monitor_file_contents = process_monitor_file.readlines()
 
     cpu     = []
     cpu_1   = 0
     cpu_2   = 0
+    cpu_3   = 0
+
     state   = []
     state_1 = ''
     state_2 = ''
+    state_3 = ''
+
+
     for line in range( 0, len(process_monitor_file_contents) ):
         line_list = process_monitor_file_contents[line].split()
         if pid in line_list:
             cpu.append( line_list[2] )
             state.append( line_list[12] )
 
-    if len(cpu) >= 2:
-        cpu_2   = cpu[-1]
-        cpu_1   = cpu[-2]
-    if len(state) >= 2:
-        state_2     = state[-1]
-        state_1     = state[-2]
-
-    cpu     = []
-    state   = []
-
     if cpu_or_state == 'cpu':
-        if ( int(cpu_1) < cpu_threshold ) and ( int(cpu_2) < cpu_threshold ):
-            monitoring_loop = False
-        elif (cpu_1 == 0) and (cpu_2 == 0):
-            monitoring_loop = False
-        else:
-            process_monitor_file.close()
-            print('\nStill processing. . . .')
+
+        if len(cpu) >= 5:
+            cpu_3   = cpu[-1]
+            cpu_2   = cpu[-2]
+            cpu_1   = cpu[-3]
+
+            if ( float(cpu_1) < cpu_threshold ) and ( float(cpu_2) < cpu_threshold ) and ( float(cpu_3) < cpu_threshold ):
+                monitoring_loop = False
+            elif (cpu_1 == 0) and (cpu_2 == 0) and (cpu_3 == 0):
+                monitoring_loop = False
+            else:
+                process_monitor_file.close()
+                print('\nStill processing. . . .')
+    
+            cpu     = []
 
     elif cpu_or_state == 'state':
-        if (state_1 == 'sleeping') and (state_2 == 'sleeping'):
-            monitoring_loop = False
-        elif (state_1 == 'stuck') and (state_2 == 'stuck'):
-            print('\n\nSTUCK STUCK STUCK STUCK STUCK (…THE FOLLOWING MESSAGE MAY BE FALSE…)\n\n')
-            monitoring_loop = False
-        elif (state_1 == '') and (state_2 == ''):
-            monitoring_loop = False
-        else:
-            process_monitor_file.close()
-            print('\nStill processing. . . .')
+
+        if len(state) >= 5:
+            state_3     = state[-1]
+            state_2     = state[-2]
+            state_1     = state[-3]
+
+            if (state_1 == 'sleeping') and (state_2 == 'sleeping') and (state_3 == 'sleeping'):
+                monitoring_loop = False
+            elif (state_1 == 'stuck') and (state_2 == 'stuck') and (state_3 == 'stuck'):
+                print('\n\nSTUCK STUCK STUCK STUCK STUCK (…THE FOLLOWING MESSAGE MAY BE FALSE…)\n\n')
+                monitoring_loop = False
+            elif (state_1 == '') and (state_2 == '') and (state_3 == ''):
+                monitoring_loop = False
+            else:
+                process_monitor_file.close()
+                print('\nStill processing. . . .')
+
+            state   = []
 
     else:
         print('\n\nERROR! Threshold determination not valid.\n\n')
@@ -141,6 +155,11 @@ while monitoring_loop:
 
 # -------------------------------------------
 # notify when process is complete
+end_date = datetime.today().strftime('%m-%d-%Y')
+end_time = datetime.today().strftime('%-H:%M')
+
+notification = str( '\n\n~~ !!!! PROCESS COMPLETE !!! ~~\nStart Day: %s -- Start Time: %s\nEnd Date: %s -- End Time: %s' %(start_date, start_time, end_date, end_time) )
+
 print(notification) #notification
 
 if py_or_script == 'py':
@@ -152,10 +171,7 @@ else:
 
 # ----------------------
 # close down shop
-
-process_file.close() #clear process file
-process_monitor_file.close() #clear activity file
+os.remove(process_fname)
+os.remove(process_monitor_fname)
 
 exit()
-
-
