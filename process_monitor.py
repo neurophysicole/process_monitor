@@ -158,7 +158,7 @@ while monitoring_loop:
 end_date = datetime.today().strftime('%m-%d-%Y')
 end_time = datetime.today().strftime('%-H:%M')
 
-notification = str( '\n\n~~ !!!! PROCESS COMPLETE !!! ~~\nStart Day: %s -- Start Time: %s\nEnd Date: %s -- End Time: %s' %(start_date, start_time, end_date, end_time) )
+notification = str( '\n\n~~ !!!! PROCESS COMPLETE !!! ~~\nEnd Date: %s -- End Time: %s\nStart Day: %s -- Start Time: %s' %(end_date, end_time, start_date, start_time) )
 
 print(notification) #notification
 
