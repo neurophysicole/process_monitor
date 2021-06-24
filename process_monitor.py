@@ -34,45 +34,51 @@ phone_number    = 5092871811 #work phone number
 
 # -----------------
 # find the process
-process_name = input('\nWhat is the name of the process that you would like to monitor?\n\n')
+process_loop = True
+while process_loop:
+    process_name = input('\nWhat is the name of the process that you would like to monitor?\n\n')
 
-os.system( 'ps -ax | grep %s >> %s' %(process_name, process_fname) ) #save the processes
+    os.system( 'ps -ax | grep %s >> %s' %(process_name, process_fname) ) #save the processes
 
-# list the processes
-process_file    = open(process_fname, 'r') #open file
-all_processes   = process_file.readlines() #read file
+    # list the processes
+    process_file    = open(process_fname, 'r') #open file
+    all_processes   = process_file.readlines() #read file
 
-# get the processes
-potential_processes = []
-for line in range( 0, len(all_processes) ):
-    this_line   = all_processes[line]
-    if process_name in this_line:
-        potential_processes.append(this_line)
+    # get the processes
+    potential_processes = []
+    for line in range( 0, len(all_processes) ):
+        this_line   = all_processes[line]
+        if process_name in this_line:
+            potential_processes.append(this_line)
 
-processes_df = pd.DataFrame( {'Processes': potential_processes} ) #list processes in a dataframe
-processes_df = str( tabulate(processes_df, headers = 'keys', tablefmt = 'psql', showindex = True) )
-os.system('echo \'%s\'' %processes_df) #print dataframe
+    processes_df = pd.DataFrame( {'Processes': potential_processes} ) #list processes in a dataframe
+    processes_df = str( tabulate(processes_df, headers = 'keys', tablefmt = 'psql', showindex = True) )
+    os.system('echo \'%s\'' %processes_df) #print dataframe
 
-id_loop = True
-while id_loop:
-    process_id = input('\n\nPlease indicate the number corresponding with the identified processes listed above that you would like to monitor:  ') #id the process
-    if int(process_id) >= len(potential_processes):
-        print('\nImpossible answer. Try again with a smaller number.\n')
-    elif int(process_id) < len(potential_processes):
-        id_confirm_loop = True
-        while id_confirm_loop:
-            if int(process_id) < len(potential_processes):
-                id_confirm = input( '%s\n\n Is that right? (y/n): ' %( potential_processes[int(process_id)] ) )
-                if (id_confirm == 'y') or (id_confirm == ''):
-                    id_loop = False
-                    id_confirm_loop = False
-                elif id_confirm == 'n':
-                    print('OK, try again.')
-                    id_confirm_loop = False
-                else:
-                    print('wtf. Try again.')
-    else:
-        print('\n\nERRROR: Please try again.\n')
+    id_loop = True
+    while id_loop:
+        process_id = input('\n\nPlease indicate the number corresponding with the identified processes listed above that you would like to monitor (if none, type \'z\'):  ') #id the process
+        if int(process_id) >= len(potential_processes):
+            print('\nImpossible answer. Try again with a smaller number.\n')
+        elif int(process_id) < len(potential_processes):
+            id_confirm_loop = True
+            while id_confirm_loop:
+                if int(process_id) < len(potential_processes):
+                    id_confirm = input( '%s\n\n Is that right? (y/n): ' %( potential_processes[int(process_id)] ) )
+                    if (id_confirm == 'y') or (id_confirm == ''):
+                        process_loop = False
+                        id_loop = False
+                        id_confirm_loop = False
+                    elif id_confirm == 'n':
+                        print('OK, try again.')
+                        id_confirm_loop = False
+                    else:
+                        print('wtf. Try again.')
+        elif process_id == 'z':
+            print('\n\nOops, OK.\n')
+            id_loop = False
+        else:
+            print('\n\nERRROR: Please try again.\n')
     
 process         = potential_processes[int(process_id)].split() #pick selection
 pid             = process[0] #get pid
