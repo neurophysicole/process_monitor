@@ -194,7 +194,7 @@ while monitoring_loop:
             if (state_1 == 'sleeping') and (state_2 == 'sleeping') and (state_3 == 'sleeping'):
                 monitoring_loop = False
             elif (state_1 == 'stuck') and (state_2 == 'stuck') and (state_3 == 'stuck'):
-                print('\n\nSTUCK STUCK STUCK STUCK STUCK (…THE FOLLOWING MESSAGE MAY BE FALSE…)\n\n')
+                print('\n\nSTUCK STUCK STUCK STUCK STUCK\n\n')
             elif (state_1 == '') and (state_2 == '') and (state_3 == ''):
                 monitoring_loop = False
             else:
