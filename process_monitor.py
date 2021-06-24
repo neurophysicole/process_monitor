@@ -11,15 +11,13 @@ from py_imessage import imessage
 import time
 from datetime import datetime
 
+
 # ----------
 # init vars
 wd              = os.path.dirname(os.path.abspath('%s' %__file__))
 
-cpu_or_state    = 'cpu' #can check on the state, or the cpe level.. checking cpu for now because it seems more straightforward
 py_or_script    = 'script' #can use python or osascript — but python doesn’t seem to be working on Donbot
-script_file     = '%s/sendMessage.applescript' %wd
-
-cpu_threshold   = 10 #percent
+script_file     = '%s/sendMessage.applescript' %wd  
 
 interval_timing = 60 #seconds
 
@@ -34,7 +32,7 @@ time.sleep(.5)
 phone_number    = 5092871811 #work phone number
 
 
-# ----------------------
+# -----------------
 # find the process
 process_name = input('\nWhat is the name of the process that you would like to monitor?\n\n')
 
@@ -58,32 +56,89 @@ os.system('echo \'%s\'' %processes_df) #print dataframe
 id_loop = True
 while id_loop:
     process_id = input('\n\nPlease indicate the number corresponding with the identified processes listed above that you would like to monitor:  ') #id the process
-    if not int(process_id):
-        print('\nWhat does that even mean? Try again, but this time, input your answer as a number.\n')
     if int(process_id) >= len(potential_processes):
         print('\nImpossible answer. Try again with a smaller number.\n')
+    elif int(process_id) < len(potential_processes):
+        id_confirm_loop = True
+        while id_confirm_loop:
+            if int(process_id) < len(potential_processes):
+                id_confirm = input( '%s\n\n Is that right? (y/n): ' %( potential_processes[int(process_id)] ) )
+                if (id_confirm == 'y') or (id_confirm == ''):
+                    id_loop = False
+                    id_confirm_loop = False
+                elif id_confirm == 'n':
+                    print('OK, try again.')
+                    id_confirm_loop = False
+                else:
+                    print('wtf. Try again.')
+    else:
+        print('\n\nERRROR: Please try again.\n')
     
-    id_confirm_loop = True
-    
-    while id_confirm_loop:
-        if int(process_id) < len(potential_processes):
-            id_confirm = input( '%s\n\n Is that right? (y/n): ' %( potential_processes[int(process_id)] ) )
-            if (id_confirm == 'y') or (id_confirm == ''):
-                id_loop = False
-                id_confirm_loop = False
-            elif id_confirm == 'n':
-                print('OK, try again.')
-                id_confirm_loop = False
-            else:
-                print('wtf. Try again.')
-
 process         = potential_processes[int(process_id)].split() #pick selection
 pid             = process[0] #get pid
 process_name    = process[3:] #get process name
 
-# ----------------------
-# begin monitoring
 
+# ------------------
+# settings interview
+print('\n\nSETTINGS CHECK-IN\n')
+
+threshold_choices = ['cpu', 'state']
+threshold_loop = True
+while threshold_loop:
+    cpu_or_state    = input('\n\Type the number corresponding to the processing state you would like to monitor for thresholding:\n\n1- cpu\n2- state\n\n:  ') #can check on the state, or the cpu level..
+    if (int(cpu_or_state) > 2) or (int(cpu_or_state) < 1):
+        print('\n\nImpossible selection. Please try again.\n')
+    elif (int(cpu_or_state) == 1) or (int(cpu_or_state) == 2):
+        threshold_confirm_loop = True
+        while threshold_confirm_loop:
+            threshold_confirm = input('\n\n%s, right? (y/n):  ' %threshold_choices[(int(cpu_or_state) - 1)])
+            if (threshold_confirm == 'y') or (threshold_confirm == ''):
+                cpu_or_state = threshold_choices[(int(cpu_or_state) - 1)]
+                threshold_loop = False
+                threshold_confirm_loop = False
+            elif threshold_confirm == 'n':
+                print('\n\nOK, try again.\n')
+                threshold_confirm_loop = False
+            else:
+                print('\n\nERROR: Response not valid. Please try again.\n')
+    else:
+        print('\n\ERROR: Please try again.\n')
+
+if cpu_or_state == 'cpu':
+    manual_threshold_loop = True
+    while manual_threshold_loop:
+        manual_threhsold = input('\n\nThreshold = 10\%, do you want to change it? (y/n):  ')
+        if (manual_threshold == 'y') or (manual_threshold == ''):
+            change_threshold_loop = True
+            while change_threshold_loop:
+                change_threshold = input('\n\nSet the new cpu \% threshold:  ')
+                if int(change_threshold):
+                    confirm_threshold_loop = True
+                    while confirm_threshold_loop:
+                        confirm_threshold = input('\n\nSet threshold to %s\%? (y/n):  ')
+                        if (confirm_threhsold == 'y') or (confirm_threshold == ''):
+                            print('\nAs you wish.\n')
+                            cpu_threshold = int(change_threshold)
+                            manual_threshold_loop = False
+                            change_threshold_loop = False
+                            confirm_threshold_loop = False
+                        elif confirm_threshold == 'n':
+                            print('\nAlright, try again.\n')
+                            confirm_threshold_loop = False
+                        else:
+                            print('\n\nwtf? Try again.\n')
+                else:
+                    print('\n\nERROR: Something went wrong. Please try again.\n')
+        elif manual_threshold == 'n':
+            print('\n\nCool cool cool cool cool.. We\'ll keep it at 10\% then.\n')
+            cpu_threshold   = 10 #percent
+        else:
+            print('\n\nwtf? Please try again.\n')
+
+
+# ----------------
+# begin monitoring
 print('\n\n~~ Monitoring in Progress ~~\n\n')
 start_date = datetime.today().strftime('%m-%d-%Y')
 start_time = datetime.today().strftime('%-H:%M')
@@ -140,7 +195,6 @@ while monitoring_loop:
                 monitoring_loop = False
             elif (state_1 == 'stuck') and (state_2 == 'stuck') and (state_3 == 'stuck'):
                 print('\n\nSTUCK STUCK STUCK STUCK STUCK (…THE FOLLOWING MESSAGE MAY BE FALSE…)\n\n')
-                monitoring_loop = False
             elif (state_1 == '') and (state_2 == '') and (state_3 == ''):
                 monitoring_loop = False
             else:
@@ -153,7 +207,7 @@ while monitoring_loop:
         print('\n\nERROR! Threshold determination not valid.\n\n')
 
 
-# -------------------------------------------
+# -------------------------------
 # notify when process is complete
 end_date = datetime.today().strftime('%m-%d-%Y')
 end_time = datetime.today().strftime('%-H:%M')
@@ -169,7 +223,8 @@ elif py_or_script == 'script':
 else:
     print('\n\nERROR! Notification mode not valid.\n\n')
 
-# ----------------------
+
+# ---------------
 # close down shop
 os.remove(process_fname)
 os.remove(process_monitor_fname)
