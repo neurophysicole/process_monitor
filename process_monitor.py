@@ -150,6 +150,17 @@ start_date = datetime.today().strftime('%m-%d-%Y')
 start_time = datetime.today().strftime('%-H:%M')
 print( 'Start Date: %s  -- Start Time: %s' %(start_date, start_time) )
 
+# initial notification
+notification_start = str( '\n\nMonitoring Process:\n%s\n\nStart Day: %s -- Start Time: %s' %(process_name, start_date, start_time) )
+
+if py_or_script == 'py':
+    imessage.send(phone_number, notification) #send text
+elif py_or_script == 'script':
+    os.system( 'osascript %s %i "%s"' %(script_file, phone_number, notification_start) )
+else:
+    print('\n\nERROR! Notification mode not valid.\n\n')
+
+
 monitoring_loop = True
 while monitoring_loop:
     os.system( str( 'top -l 5 -o cpu -n 10 -s %s >> %s' %(interval_timing, process_monitor_fname) ) ) #save the activity
@@ -218,14 +229,14 @@ while monitoring_loop:
 end_date = datetime.today().strftime('%m-%d-%Y')
 end_time = datetime.today().strftime('%-H:%M')
 
-notification = str( '\n\n~~ !!!! PROCESS COMPLETE !!! ~~\nEnd Date: %s -- End Time: %s\nStart Day: %s -- Start Time: %s' %(end_date, end_time, start_date, start_time) )
+notification_complete = str( '\n\n~~ !!!! PROCESS COMPLETE !!! ~~\nEnd Date: %s -- End Time: %s' %(end_date, end_time) )
 
-print(notification) #notification
+print(notification_complete) #notification
 
 if py_or_script == 'py':
-    imessage.send(phone_number, notification) #send text
+    imessage.send(phone_number, notification_complete) #send text
 elif py_or_script == 'script':
-    os.system( 'osascript %s %i "%s"' %(script_file, phone_number, notification) )
+    os.system( 'osascript %s %i "%s"' %(script_file, phone_number, notification_complete) )
 else:
     print('\n\nERROR! Notification mode not valid.\n\n')
 
