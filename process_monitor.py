@@ -21,14 +21,6 @@ script_file     = '%s/sendMessage.applescript' %wd
 
 interval_timing = 60 #seconds
 
-process_monitor_fname   = '%s/process_monitor.txt' %wd #process monitor filename
-process_fname           = '%s/processes.txt' %wd #process filename
-
-open(process_monitor_fname, 'w')
-time.sleep(.5)
-open(process_fname, 'w')
-time.sleep(.5)
-
 phone_number    = 5092871811 #work phone number
 
 
@@ -37,6 +29,14 @@ phone_number    = 5092871811 #work phone number
 process_loop = True
 while process_loop:
     process_name = input('\nWhat is the name of the process that you would like to monitor?\n\n')
+
+    process_monitor_fname   = '%s/%s_monitor.txt' %(wd, process_name) #process monitor filename
+    process_fname           = '%s/%s_processes.txt' %(wd, process_name) #process filename
+
+    open(process_monitor_fname, 'w')
+    time.sleep(.5)
+    open(process_fname, 'w')
+    time.sleep(.5)
 
     os.system( 'ps -ax | grep %s >> %s' %(process_name, process_fname) ) #save the processes
 
@@ -58,27 +58,32 @@ while process_loop:
     id_loop = True
     while id_loop:
         process_id = input('\n\nPlease indicate the number corresponding with the identified processes listed above that you would like to monitor (if none, type \'z\'):  ') #id the process
-        if int(process_id) >= len(potential_processes):
-            print('\nImpossible answer. Try again with a smaller number.\n')
-        elif int(process_id) < len(potential_processes):
-            id_confirm_loop = True
-            while id_confirm_loop:
-                if int(process_id) < len(potential_processes):
-                    id_confirm = input( '%s\n\n Is that right? (y/n): ' %( potential_processes[int(process_id)] ) )
-                    if (id_confirm == 'y') or (id_confirm == ''):
-                        process_loop = False
-                        id_loop = False
-                        id_confirm_loop = False
-                    elif id_confirm == 'n':
-                        print('OK, try again.')
-                        id_confirm_loop = False
-                    else:
-                        print('wtf. Try again.')
-        elif process_id == 'z':
+        if str(process_id) == 'z':
             print('\n\nOops, OK.\n')
+            os.remove(process_monitor_fname)
+            os.remove(process_fname)
             id_loop = False
+        elif ( not int(process_id) ) and (process_id == 0):
+                print('\n\nERROR: Please try again.')
         else:
-            print('\n\nERRROR: Please try again.\n')
+            if int(process_id) >= len(potential_processes):
+                print('\nImpossible answer. Try again with a smaller number.\n')
+            elif int(process_id) < len(potential_processes):
+                id_confirm_loop = True
+                while id_confirm_loop:
+                    if int(process_id) < len(potential_processes):
+                        id_confirm = input( '%s\n\n Is that right? (y/n): ' %( potential_processes[int(process_id)] ) )
+                        if (id_confirm == 'y') or (id_confirm == ''):
+                            process_loop = False
+                            id_loop = False
+                            id_confirm_loop = False
+                        elif id_confirm == 'n':
+                            print('OK, try again.')
+                            id_confirm_loop = False
+                        else:
+                            print('wtf. Try again.')
+            else:
+                print('\n\nERRROR: Please try again.\n')
     
 process         = potential_processes[int(process_id)].split() #pick selection
 pid             = process[0] #get pid
